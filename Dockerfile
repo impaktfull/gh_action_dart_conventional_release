@@ -1,4 +1,4 @@
-FROM node:slim
+FROM google/dart
 LABEL "com.github.actions.name"="Dart Conventional Release"
 LABEL "com.github.actions.description"="Automating version bump for conventional dart releases"
 LABEL "com.github.actions.icon"="upload-cloud"
@@ -13,8 +13,6 @@ RUN npm install
 RUN apt-get update
 # Install git
 RUN apt-get -y install git
-# Install dart
-RUN apt-get install dart
 
 # Copy the rest of your action's code
 COPY . .
