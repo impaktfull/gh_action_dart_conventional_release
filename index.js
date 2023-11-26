@@ -69,6 +69,11 @@ async function run() {
     core.info(`Bumping version from ${currentVersion} to ${newVersion}`)
     updatePubspec(newVersion)
 
+    // Some tests
+    await runInWorkspace('pwd')
+    await runInWorkspace('ls', ['-la'])
+    await runInWorkspace('git', ['status'])
+
     // Setting up Git
     await runInWorkspace('git', ['config', 'user.name', `"${process.env.GITHUB_USER || 'Dart Conventional Release'}"`])
     await runInWorkspace('git', ['config', 'user.email', `"${process.env.GITHUB_EMAIL || 'gh_action_dart_conventional_release@users.noreply.github.com'}"`])
