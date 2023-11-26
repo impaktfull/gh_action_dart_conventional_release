@@ -88,7 +88,7 @@ async function run() {
 
     // Committing changes
     await runInWorkspace('git', ['add', 'pubspec.yaml'])
-    await runInWorkspace('git', ['commit', '-m', `ci: ${commitMessage} ${newVersion}`])
+    // await runInWorkspace('git', ['commit', '-m', `ci: ${commitMessage} ${newVersion}`])
 
     // Tagging the commit
     const tag = `v${newVersion}`
