@@ -85,6 +85,9 @@ async function run() {
     // Setting up Git
     await runInWorkspace('git', ['config', 'user.name', `"${process.env.GITHUB_USER || 'Dart Conventional Release'}"`])
     await runInWorkspace('git', ['config', 'user.email', `"${process.env.GITHUB_EMAIL || 'gh_action_dart_conventional_release@users.noreply.github.com'}"`])
+    const remoteGitRepoUrl = `https://${githubToken}:x-oauth-basic@github.com/${process.env.GITHUB_REPOSITORY}.git`
+    await runInWorkspace('git', ['remote', 'set-url', 'origin', remoteGitRepoUrl])
+
 
     // Committing changes
     await runInWorkspace('git', ['add', 'pubspec.yaml'])
@@ -94,9 +97,8 @@ async function run() {
     await runInWorkspace('git', ['tag', tag])
 
     // Pushing changes
-    const remoteRepo = `https://${githubToken}:x-oauth-basic@github.com/${process.env.GITHUB_REPOSITORY}.git`
-    await runInWorkspace('git', ['push', remoteRepo])
-    await runInWorkspace('git', ['push', remoteRepo, '--tags'])
+    await runInWorkspace('git', ['push', 'origin'])
+    await runInWorkspace('git', ['push', 'origin', '--tags'])
   } catch (error) {
     core.setFailed(`Action failed with error: ${error}`)
   }
