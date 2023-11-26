@@ -1,0 +1,34 @@
+{
+  "name": "gh_action_dart_conventional_release",
+  "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/impaktfull/gh_action_dart_conventional_release.git"
+  },
+  "keywords": [
+    "dart",
+    "conventional commits",
+    "github actions",
+    "automated releases"
+  ],
+  "author": "Koen Van Looveren (Impaktfull)",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/impaktfull/gh_action_dart_conventional_release/issues"
+  },
+  "homepage": "https://github.com/impaktfull/gh_action_dart_conventional_release#readme",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./index.js",
+    "test": "jest"
+  },
+  "dependencies": {
+    "actions-toolkit": "^2.2.0",
+    "js-yaml": "^4.1.0",
+    "yargs": "^15.3.1"
+  },
+  "devDependencies": {
+    "jest": "^25.2.7",
+    "standard": "^14.3.3"
+  }
+}

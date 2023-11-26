@@ -1,0 +1,13 @@
+name: Dart Conventional Release
+description: Automating version bump for conventional dart releases
+runs:
+  using: docker
+  image: Dockerfile
+branding:
+  icon: upload-cloud
+  color: blue
+inputs:
+  tag-prefix:
+    description: 'Prefix that is used for the git tag'
+    default: 'v'
+    required: false
