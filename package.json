@@ -1,6 +1,6 @@
 {
   "name": "gh_action_dart_conventional_release",
-  "version": "0.1.16",
+  "version": "0.1.17",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/impaktfull/gh_action_dart_conventional_release.git"
