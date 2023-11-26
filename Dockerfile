@@ -6,13 +6,11 @@ LABEL "com.github.actions.color"="blue"
 
 # Copy the package.json and package-lock.json
 COPY package*.json ./
-RUN npm install -g npm@7.0.3
+RUN npm install -g npm@latest
 
 # Install dependencies
 RUN apt-get update
 RUN apt-get -y install git
-
-RUN npm ci --only=production
 
 # Copy the rest of your action's code
 COPY . .
