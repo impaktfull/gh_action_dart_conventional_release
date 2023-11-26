@@ -47,14 +47,8 @@ function runInWorkspace(command, args) {
   return exec.exec(command, args, { cwd: workspace })
 }
 
-async function validateDartProject() {
-  await runInWorkspace('dart', ['pub', 'publish', '--dry-run'])
-}
-
 async function run() {
   try {
-    await validateDartProject()
-
     const pubspec = getPubspec()
     const event = github.context.payload
 
