@@ -72,6 +72,7 @@ async function run() {
     // Some tests
     await runInWorkspace('pwd')
     await runInWorkspace('ls', ['-la'])
+    await runInWorkspace('git', ['config', '--global', '--add', 'safe.directory', workspace])
     await runInWorkspace('git', ['status'])
 
     // Setting up Git
