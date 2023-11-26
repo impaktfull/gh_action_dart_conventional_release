@@ -7,6 +7,7 @@ LABEL "com.github.actions.color"="blue"
 # Copy the package.json and package-lock.json
 COPY package*.json ./
 RUN npm install -g npm@latest
+RUN npm install
 
 # Install dependencies
 RUN apt-get update
