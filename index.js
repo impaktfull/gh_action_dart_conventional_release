@@ -7,16 +7,23 @@ const semver = require('semver')
 
 // Change working directory if user defined PACKAGEJSON_DIR
 if (process.env.PACKAGEJSON_DIR) {
-  process.env.GITHUB_WORKSPACE = `${process.env.GITHUB_WORKSPACE}/${process.env.PACKAGEJSON_DIR}`;
-  process.chdir(process.env.GITHUB_WORKSPACE);
+  process.env.GITHUB_WORKSPACE = `${process.env.GITHUB_WORKSPACE}/${process.env.PACKAGEJSON_DIR}`
+  process.chdir(process.env.GITHUB_WORKSPACE)
 } else if (process.env.INPUT_PACKAGEJSON_DIR) {
-  process.env.GITHUB_WORKSPACE = `${process.env.GITHUB_WORKSPACE}/${process.env.INPUT_PACKAGEJSON_DIR}`;
-  process.chdir(process.env.GITHUB_WORKSPACE);
+  process.env.GITHUB_WORKSPACE = `${process.env.GITHUB_WORKSPACE}/${process.env.INPUT_PACKAGEJSON_DIR}`
+  process.chdir(process.env.GITHUB_WORKSPACE)
 }
 
 //Workspace
-const workspace = process.env.GITHUB_WORKSPACE;
-console.log(`Current workspace: ${workspace}`);
+const workspace = process.env.GITHUB_WORKSPACE
+console.log(`Current workspace: ${workspace}`)
+
+// Github Token
+const githubToken = process.env.GITHUB_TOKEN
+if (githubToken == null || githubToken == "") {
+  core.setFailed('GITHUB_TOKEN not found.')
+  return
+}
 
 // Helper function to read and parse the pubspec.yaml file
 function getPubspec() {
@@ -88,8 +95,7 @@ async function run() {
     await runInWorkspace('git', ['tag', tag])
 
     // Pushing changes
-    const token = core.getInput('GITHUB_TOKEN', { required: true })
-    const remoteRepo = `https://${token}:x-oauth-basic@github.com/${process.env.GITHUB_REPOSITORY}.git`
+    const remoteRepo = `https://${githubToken}:x-oauth-basic@github.com/${process.env.GITHUB_REPOSITORY}.git`
     await runInWorkspace('git', ['push', remoteRepo])
     await runInWorkspace('git', ['push', remoteRepo, '--tags'])
 
