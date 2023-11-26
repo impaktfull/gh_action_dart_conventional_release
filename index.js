@@ -5,15 +5,18 @@ const fs = require('fs')
 const yaml = require('yaml')
 const semver = require('semver')
 
+// Change working directory if user defined PACKAGEJSON_DIR
+if (process.env.PACKAGEJSON_DIR) {
+  process.env.GITHUB_WORKSPACE = `${process.env.GITHUB_WORKSPACE}/${process.env.PACKAGEJSON_DIR}`;
+  process.chdir(process.env.GITHUB_WORKSPACE);
+} else if (process.env.INPUT_PACKAGEJSON_DIR) {
+  process.env.GITHUB_WORKSPACE = `${process.env.GITHUB_WORKSPACE}/${process.env.INPUT_PACKAGEJSON_DIR}`;
+  process.chdir(process.env.GITHUB_WORKSPACE);
+}
 
 //Workspace
 const workspace = process.env.GITHUB_WORKSPACE;
 console.log(`Current workspace: ${workspace}`);
-
-// Change working directory if user defined PACKAGEJSON_DIR
-if (process.env.PACKAGEJSON_DIR) {
-  process.chdir(`${process.env.GITHUB_WORKSPACE}/${process.env.PACKAGEJSON_DIR}`)
-}
 
 // Helper function to read and parse the pubspec.yaml file
 function getPubspec() {
@@ -34,7 +37,7 @@ function incrementVersion(currentVersion, type) {
 }
 
 function runInWorkspace(command, args) {
-  return exec.exec(command, args, { cwd: workspace });
+  return exec.exec(command, args, { cwd: workspace })
 }
 
 async function run() {
@@ -50,7 +53,7 @@ async function run() {
       core.info('No action necessary!')
       return
     }
-    core.info(`${event.commits.length} commit(s) for this version bump.`)
+    core.info(`\`${event.commits.length}\` commit(s) for this version bump.`)
 
     let versionType = 'patch'
     if (messages.map(message => message.includes('BREAKING CHANGE') || message.includes('major')).includes(true)) {
@@ -67,8 +70,8 @@ async function run() {
     updatePubspec(newVersion)
 
     // Setting up Git
-    await runInWorkspace('git', ['config', 'user.name', `"${process.env.GITHUB_USER || 'Dart Conventional Release'}"`]);
-    await runInWorkspace('git', ['config', 'user.email', `"${process.env.GITHUB_EMAIL || 'gh_action_dart_conventional_release@users.noreply.github.com'}"`]);
+    await runInWorkspace('git', ['config', 'user.name', `"${process.env.GITHUB_USER || 'Dart Conventional Release'}"`])
+    await runInWorkspace('git', ['config', 'user.email', `"${process.env.GITHUB_EMAIL || 'gh_action_dart_conventional_release@users.noreply.github.com'}"`])
 
     // Committing changes
     await runInWorkspace('git', ['add', 'pubspec.yaml'])
