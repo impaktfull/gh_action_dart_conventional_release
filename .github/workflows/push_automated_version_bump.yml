@@ -1,4 +1,4 @@
-name: "Automated version bump"
+name: "Push automated version bump"
 
 on:
   push:
