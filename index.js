@@ -1,9 +1,14 @@
 const core = require('@actions/core')
 const github = require('@actions/github')
+const exec = require('@actions/exec')
 const fs = require('fs')
 const yaml = require('yaml')
 const semver = require('semver')
-const exec = require('@actions/exec')
+
+
+//Workspace
+const workspace = process.env.GITHUB_WORKSPACE;
+console.log(`Current workspace: ${workspace}`);
 
 // Change working directory if user defined PACKAGEJSON_DIR
 if (process.env.PACKAGEJSON_DIR) {
@@ -26,6 +31,10 @@ function updatePubspec(version) {
 // Increment version based on the type (major, minor, patch)
 function incrementVersion(currentVersion, type) {
   return semver.inc(currentVersion, type)
+}
+
+function runInWorkspace(command, args) {
+  return exec.exec(command, args, { cwd: workspace });
 }
 
 async function run() {
@@ -58,22 +67,22 @@ async function run() {
     updatePubspec(newVersion)
 
     // Setting up Git
-    await exec.exec('git', ['config', 'user.name', 'Dart Conventional Release'])
-    await exec.exec('git', ['config', 'user.email', 'gh_action_dart_conventional_release@github.com'])
+    await runInWorkspace('git', ['config', 'user.name', `"${process.env.GITHUB_USER || 'Dart Conventional Release'}"`]);
+    await runInWorkspace('git', ['config', 'user.email', `"${process.env.GITHUB_EMAIL || 'gh_action_dart_conventional_release@users.noreply.github.com'}"`]);
 
     // Committing changes
-    await exec.exec('git', ['add', 'pubspec.yaml'])
-    await exec.exec('git', ['commit', '-m', `ci: ${commitMessage} ${newVersion}`])
+    await runInWorkspace('git', ['add', 'pubspec.yaml'])
+    await runInWorkspace('git', ['commit', '-m', `ci: ${commitMessage} ${newVersion}`])
 
     // Tagging the commit
     const tag = `v${newVersion}`
-    await exec.exec('git', ['tag', tag])
+    await runInWorkspace('git', ['tag', tag])
 
     // Pushing changes
     const token = core.getInput('GITHUB_TOKEN', { required: true })
     const remoteRepo = `https://${token}:x-oauth-basic@github.com/${process.env.GITHUB_REPOSITORY}.git`
-    await exec.exec('git', ['push', remoteRepo])
-    await exec.exec('git', ['push', remoteRepo, '--tags'])
+    await runInWorkspace('git', ['push', remoteRepo])
+    await runInWorkspace('git', ['push', remoteRepo, '--tags'])
 
   } catch (error) {
     core.setFailed(`Action failed with error: ${error}`)
