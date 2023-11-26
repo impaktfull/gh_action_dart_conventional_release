@@ -15,6 +15,8 @@ RUN apt-get update
 RUN apt-get -y install git
 # Install wget
 RUN apt-get install -y wget 
+# Install gpg-agent
+RUN apt-get install gpg-agent
 # Install dart
 RUN apt-get install apt-transport-https
 RUN wget -qO- https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/dart.gpg
