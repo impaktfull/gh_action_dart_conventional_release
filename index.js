@@ -47,19 +47,12 @@ function runInWorkspace(command, args) {
   return exec.exec(command, args, { cwd: workspace })
 }
 
-async function setLongLivePubToken() {
-  const token = await core.getIDToken('https://pub.dev')
-  core.exportVariable('PUB_TOKEN', token)
-  await runInWorkspace('dart', ['pub', 'token', 'add', 'https://pub.dev', '--env-var', 'PUB_TOKEN'])
-}
-
 async function validateDartProject() {
   await runInWorkspace('dart', ['pub', 'publish', '--dry-run'])
 }
 
 async function run() {
   try {
-    await setLongLivePubToken()
     await validateDartProject()
 
     const pubspec = getPubspec()
@@ -110,9 +103,6 @@ async function run() {
     const remoteRepo = `https://${githubToken}:x-oauth-basic@github.com/${process.env.GITHUB_REPOSITORY}.git`
     await runInWorkspace('git', ['push', remoteRepo])
     await runInWorkspace('git', ['push', remoteRepo, '--tags'])
-
-    // Publishing to pub.dev
-    await runInWorkspace('dart', ['pub', 'publish'])
   } catch (error) {
     core.setFailed(`Action failed with error: ${error}`)
   }
