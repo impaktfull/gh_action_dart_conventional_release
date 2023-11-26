@@ -41,6 +41,7 @@ async function run() {
       core.info('No action necessary!')
       return
     }
+    core.info(`${event.commits.length} commit(s) for this version bump.`)
 
     let versionType = 'patch'
     if (messages.map(message => message.includes('BREAKING CHANGE') || message.includes('major')).includes(true)) {
@@ -49,9 +50,11 @@ async function run() {
       message => message.toLowerCase().startsWith('feat') || message.toLowerCase().includes('minor')).includes(true)) {
       versionType = 'minor'
     }
+    core.info(`${versionType} version bump!`)
 
     const currentVersion = pubspec.version.toString()
     const newVersion = incrementVersion(currentVersion, versionType)
+    core.info(`Bumping version from ${currentVersion} to ${newVersion}`)
     updatePubspec(newVersion)
 
     // Setting up Git

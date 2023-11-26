@@ -13,6 +13,8 @@ RUN npm install
 RUN apt-get update
 RUN apt-get -y install git
 
+RUN git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
 # Copy the rest of your action's code
 COPY . .
 
