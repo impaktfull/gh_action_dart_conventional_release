@@ -47,8 +47,21 @@ function runInWorkspace(command, args) {
   return exec.exec(command, args, { cwd: workspace })
 }
 
+async function setLongLivePubToken() {
+  const token = await core.getIDToken('https://pub.dev')
+  core.exportVariable('PUB_TOKEN', token)
+  await runInWorkspace('dart', ['pub', 'token', 'add', 'https://pub.dev', '--env-var', 'PUB_TOKEN'])
+}
+
+async function validateDartProject() {
+  await runInWorkspace('dart', ['pub', 'publish', '--dry-run'])
+}
+
 async function run() {
   try {
+    await setLongLivePubToken()
+    await validateDartProject()
+
     const pubspec = getPubspec()
     const event = github.context.payload
 
@@ -89,7 +102,6 @@ async function run() {
     // Committing changes
     await runInWorkspace('git', ['add', 'pubspec.yaml'])
     await runInWorkspace('git', ['commit', '-m', `ci: ${commitMessage} ${newVersion}`])
-
     // Tagging the commit
     const tag = `v${newVersion}`
     await runInWorkspace('git', ['tag', tag])
@@ -99,6 +111,8 @@ async function run() {
     await runInWorkspace('git', ['push', remoteRepo])
     await runInWorkspace('git', ['push', remoteRepo, '--tags'])
 
+    // Publishing to pub.dev
+    await runInWorkspace('dart', ['pub', 'publish'])
   } catch (error) {
     core.setFailed(`Action failed with error: ${error}`)
   }
