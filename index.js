@@ -20,7 +20,7 @@ function getPubspec() {
 function updatePubspec(version) {
   let pubspec = getPubspec()
   pubspec.version = version
-  fs.writeFileSync('pubspec.yaml', yaml.safeDump(pubspec), 'utf8')
+  fs.writeFileSync('pubspec.yaml', yaml.stringify(pubspec), 'utf8')
 }
 
 // Increment version based on the type (major, minor, patch)
