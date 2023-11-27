@@ -48,8 +48,8 @@ function runInWorkspace(command, args) {
 }
 
 async function configurePubDevToken() {
-  const tokenRequestUrl = process.env.ACTIONS_ID_TOKEN_REQUEST_URL;
-  const tokenRequestToken = process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN;
+  const tokenRequestUrl = process.env.ACTIONS_ID_TOKEN_REQUEST_URL
+  const tokenRequestToken = process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN
 
   if (!tokenRequestUrl || !tokenRequestToken) {
     throw "(permission: id-token: write) is requried to publish to pub.dev"
@@ -60,6 +60,7 @@ async function configurePubDevToken() {
 }
 
 async function analyzeDartProject() {
+  await runInWorkspace('dart', ['pub', 'get'])
   await runInWorkspace('dart', ['analyze'])
   await runInWorkspace('dart', ['format', '--set-exit-if-changed', '.'])
   await runInWorkspace('dart', ['pub', 'publish', '--dry-run'])
