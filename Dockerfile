@@ -4,8 +4,8 @@ LABEL "com.github.actions.description"="Automating version bump for conventional
 LABEL "com.github.actions.icon"="upload-cloud"
 LABEL "com.github.actions.color"="blue"
 
-# Install system dependencies for Git, Curl, and Unzip
-RUN apt-get update && apt-get install -y git curl unzip xz-utils
+# Install system dependencies for Git, wget, Curl, and Unzip
+RUN apt-get update && apt-get install -y git wget curl unzip xz-utils
 
 # Install Dart
 RUN apt-get update && apt-get install -y apt-transport-https
