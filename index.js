@@ -47,14 +47,32 @@ function runInWorkspace(command, args) {
   return exec.exec(command, args, { cwd: workspace })
 }
 
+async function configurePubDevToken() {
+  const tokenRequestUrl = process.env.ACTIONS_ID_TOKEN_REQUEST_URL;
+  const tokenRequestToken = process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN;
+
+  if (!tokenRequestUrl || !tokenRequestToken) {
+    throw "(permission: id-token: write) is requried to publish to pub.dev"
+  }
+  const token = await core.getIDToken('https://pub.dev')
+  core.exportVariable('PUB_TOKEN', token)
+  await runInWorkspace('dart', ['pub', 'token', 'add', 'https://pub.dev', '--env-var', 'PUB_TOKEN'])
+}
+
 async function analyzeDartProject() {
   await runInWorkspace('dart', ['analyze'])
   await runInWorkspace('dart', ['format', '--set-exit-if-changed', '.'])
   await runInWorkspace('dart', ['pub', 'publish', '--dry-run'])
 }
 
+async function uploadDartProject() {
+  await runInWorkspace('dart', ['pub', 'publish'])
+}
+
 async function run() {
   try {
+    await configurePubDevToken()
+
     const pubspec = getPubspec()
     const event = github.context.payload
 
@@ -83,7 +101,7 @@ async function run() {
     updatePubspec(newVersion)
 
     // Verification before publishing
-    await analyzeDartProject();
+    await analyzeDartProject()
 
     // Setting up Git
     await runInWorkspace('git', ['config', 'user.name', `"${process.env.GITHUB_USER || 'Dart Conventional Release'}"`])
@@ -102,6 +120,7 @@ async function run() {
     // Pushing changes
     await runInWorkspace('git', ['push', 'origin'])
     await runInWorkspace('git', ['push', 'origin', '--tags'])
+    await uploadDartProject()
   } catch (error) {
     core.setFailed(`Action failed with error: ${error}`)
   }
