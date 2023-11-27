@@ -60,7 +60,6 @@ async function configurePubDevToken() {
 }
 
 async function analyzeDartProject() {
-  await runInWorkspace('dart', ['pub', 'get'])
   await runInWorkspace('dart', ['analyze'])
   await runInWorkspace('dart', ['format', '--set-exit-if-changed', '.'])
   await runInWorkspace('dart', ['pub', 'publish', '--dry-run'])
@@ -81,6 +80,9 @@ async function executeScriptPreRun() {
 
 async function run() {
   try {
+    // Install dependencies
+    await runInWorkspace('dart', ['pub', 'get'])
+
     // Run a script before the action (only if configured)
     await executeScriptPreRun()
 
