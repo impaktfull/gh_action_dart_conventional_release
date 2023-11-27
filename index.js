@@ -69,8 +69,21 @@ async function uploadDartProject() {
   await runInWorkspace('dart', ['pub', 'publish'])
 }
 
+
+async function executeScriptPreRun() {
+  const path = core.getInput('script-pre-run')
+  if (!path) {
+    return
+  }
+  await runInWorkspace('dart', ['run', path])
+}
+
 async function run() {
   try {
+    // Run a script before the action (only if configured)
+    await executeScriptPreRun()
+
+    // Configure pub.dev token from github
     await configurePubDevToken()
 
     const pubspec = getPubspec()
