@@ -7,23 +7,22 @@ LABEL "com.github.actions.color"="blue"
 # Install system dependencies for Git, Curl, and Unzip
 RUN apt-get update && apt-get install -y git curl unzip xz-utils
 
-# Copy the package.json and package-lock.json
+# Install Dart
+RUN apt-get update && apt-get install -y apt-transport-https
+RUN sh -c 'wget -qO- https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -'
+RUN sh -c 'wget -qO- https://storage.googleapis.com/download.dartlang.org/linux/debian/dart_stable.list > /etc/apt/sources.list.d/dart_stable.list'
+RUN apt-get update && apt-get install -y dart
+
+# Add Dart to PATH
+ENV PATH="/usr/lib/dart/bin:${PATH}"
+
+# Install npm dependencies
 COPY package*.json ./
 RUN npm install
 
-# Install Dart and Flutter
-# Set the Flutter version you want to use
-ENV FLUTTER_VERSION=stable
-RUN git clone --branch $FLUTTER_VERSION https://github.com/flutter/flutter.git /usr/local/flutter
-
-# Add Flutter to PATH
-ENV PATH="/usr/local/flutter/bin:/usr/local/flutter/bin/cache/dart-sdk/bin:${PATH}"
-
-# Pre-download development binaries and libraries
-RUN flutter precache
-
-# Run basic check to download Dark SDK
-RUN flutter doctor
+# Install Dart dependencies
+COPY pubspce.* ./
+RUN dart pub get
 
 # Copy the rest of your action's code
 COPY . .
