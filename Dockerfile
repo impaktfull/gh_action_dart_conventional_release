@@ -4,17 +4,19 @@ LABEL "com.github.actions.description"="Automating version bump for conventional
 LABEL "com.github.actions.icon"="upload-cloud"
 LABEL "com.github.actions.color"="blue"
 
-# Install system dependencies for Git, wget, gnupg, Curl, and Unzip
-RUN apt-get update && apt-get install -y git wget gnupg curl unzip xz-utils
+# Install system dependencies for Git, Curl, and Unzip
+RUN apt-get update && apt-get install -y git curl unzip xz-utils
 
-# Install Dart
-RUN apt-get update && apt-get install -y apt-transport-https
-RUN sh -c 'wget -qO- https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -'
-RUN sh -c 'wget -qO- https://storage.googleapis.com/download.dartlang.org/linux/debian/dart_stable.list > /etc/apt/sources.list.d/dart_stable.list'
-RUN apt-get update && apt-get install -y dart
+# Install Dart and Flutter
+# Set the Flutter version you want to use
+ENV FLUTTER_VERSION=stable
+RUN git clone --branch $FLUTTER_VERSION https://github.com/flutter/flutter.git /usr/local/flutter
+
+# Add Flutter to PATH
+ENV PATH="/usr/local/flutter/bin:${PATH}"
 
 # Add Dart to PATH
-ENV PATH="/usr/lib/dart/bin:${PATH}"
+ENV PATH="/usr/local/flutter/bin/cache/dart-sdk/bin:${PATH}"
 
 # Install npm dependencies
 COPY package*.json ./
