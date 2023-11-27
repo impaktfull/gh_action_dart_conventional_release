@@ -20,11 +20,6 @@ ENV PATH="/usr/lib/dart/bin:${PATH}"
 COPY package*.json ./
 RUN npm install
 
-# Install Dart dependencies
-COPY pubspec.lock ./
-COPY pubspec.yaml ./
-RUN dart pub get
-
 # Copy the rest of your action's code
 COPY . .
 

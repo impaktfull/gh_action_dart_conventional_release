@@ -60,6 +60,7 @@ async function configurePubDevToken() {
 }
 
 async function analyzeDartProject() {
+  await runInWorkspace('dart', ['pub', 'get'])
   await runInWorkspace('dart', ['analyze'])
   await runInWorkspace('dart', ['format', '--set-exit-if-changed', '.'])
   await runInWorkspace('dart', ['pub', 'publish', '--dry-run'])
