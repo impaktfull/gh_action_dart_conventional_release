@@ -21,7 +21,7 @@ COPY package*.json ./
 RUN npm install
 
 # Install Dart dependencies
-COPY pubspce.* ./
+COPY pubspec.* ./
 RUN dart pub get
 
 # Copy the rest of your action's code
