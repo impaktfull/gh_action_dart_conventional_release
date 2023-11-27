@@ -5,6 +5,10 @@ const fs = require('fs')
 const yaml = require('yaml')
 const semver = require('semver')
 
+// =====================================================================
+// ========================== GLOBAL CONFIG ============================
+// =====================================================================
+
 // Change working directory if user defined PACKAGEJSON_DIR
 if (process.env.PACKAGEJSON_DIR) {
   process.env.GITHUB_WORKSPACE = `${process.env.GITHUB_WORKSPACE}/${process.env.PACKAGEJSON_DIR}`
@@ -26,7 +30,72 @@ if (githubToken == null || githubToken == "") {
 }
 
 // =====================================================================
-// ============================= Functions =============================
+// ================================ RUN ================================
+// =====================================================================
+async function run() {
+  try {
+    await configureGit()
+    await installDartDependencies();
+    await executeScriptPreRun()
+    await configurePubDevToken()
+
+    const pubspec = getPubspec()
+    const event = github.context.payload
+
+    const messages = event.commits.map(commit => commit.message + '\n' + commit.body)
+
+    const commitMessage = 'version bump to'
+    const isVersionBump = messages.map(message => message.toLowerCase().includes(commitMessage)).includes(true)
+    if (isVersionBump) {
+      core.info('No action necessary!')
+      return
+    }
+    core.info(`\`${event.commits.length}\` commit(s) for this version bump.`)
+
+    let versionType = 'patch'
+    if (messages.map(message => message.includes('BREAKING CHANGE') || message.includes('major')).includes(true)) {
+      versionType = 'major'
+    } else if (messages.map(
+      message => message.toLowerCase().startsWith('feat') || message.toLowerCase().includes('minor')).includes(true)) {
+      versionType = 'minor'
+    }
+    core.info(`${versionType} version bump!`)
+
+    const currentVersion = pubspec.version.toString()
+    const newVersion = incrementVersion(currentVersion, versionType)
+    core.info(`Bumping version from ${currentVersion} to ${newVersion}`)
+    updatePubspec(newVersion)
+
+    // Verification before publishing
+    await analyzeDartProject()
+
+    // Setting up Git
+    await runInWorkspace('git', ['config', 'user.name', `"${process.env.GITHUB_USER || 'Dart Conventional Release'}"`])
+    await runInWorkspace('git', ['config', 'user.email', `"${process.env.GITHUB_EMAIL || 'gh_action_dart_conventional_release@users.noreply.github.com'}"`])
+    const remoteGitRepoUrl = `https://${githubToken}:x-oauth-basic@github.com/${process.env.GITHUB_REPOSITORY}.git`
+    await runInWorkspace('git', ['remote', 'set-url', 'origin', remoteGitRepoUrl])
+
+
+    // Committing changes
+    await runInWorkspace('git', ['add', 'pubspec.yaml'])
+    await runInWorkspace('git', ['commit', '-m', `ci: ${commitMessage} ${newVersion}`])
+    // Tagging the commit
+    const tag = `v${newVersion}`
+    await runInWorkspace('git', ['tag', tag])
+
+    // Pushing changes
+    await runInWorkspace('git', ['push', 'origin'])
+    await runInWorkspace('git', ['push', 'origin', '--tags'])
+    await uploadDartProject()
+  } catch (error) {
+    core.setFailed(`Action failed with error: ${error}`)
+  }
+}
+
+run();
+
+// =====================================================================
+// =============================== Utils ===============================
 // =====================================================================
 
 async function configureGit() {
@@ -88,66 +157,4 @@ async function analyzeDartProject() {
 
 async function uploadDartProject() {
   await runInWorkspace('dart', ['pub', 'publish'])
-}
-
-// =====================================================================
-// ================================ RUN ================================
-// =====================================================================
-
-try {
-  await configureGit()
-  await installDartDependencies();
-  await executeScriptPreRun()
-  await configurePubDevToken()
-
-  const pubspec = getPubspec()
-  const event = github.context.payload
-
-  const messages = event.commits.map(commit => commit.message + '\n' + commit.body)
-
-  const commitMessage = 'version bump to'
-  const isVersionBump = messages.map(message => message.toLowerCase().includes(commitMessage)).includes(true)
-  if (isVersionBump) {
-    core.info('No action necessary!')
-    return
-  }
-  core.info(`\`${event.commits.length}\` commit(s) for this version bump.`)
-
-  let versionType = 'patch'
-  if (messages.map(message => message.includes('BREAKING CHANGE') || message.includes('major')).includes(true)) {
-    versionType = 'major'
-  } else if (messages.map(
-    message => message.toLowerCase().startsWith('feat') || message.toLowerCase().includes('minor')).includes(true)) {
-    versionType = 'minor'
-  }
-  core.info(`${versionType} version bump!`)
-
-  const currentVersion = pubspec.version.toString()
-  const newVersion = incrementVersion(currentVersion, versionType)
-  core.info(`Bumping version from ${currentVersion} to ${newVersion}`)
-  updatePubspec(newVersion)
-
-  // Verification before publishing
-  await analyzeDartProject()
-
-  // Setting up Git
-  await runInWorkspace('git', ['config', 'user.name', `"${process.env.GITHUB_USER || 'Dart Conventional Release'}"`])
-  await runInWorkspace('git', ['config', 'user.email', `"${process.env.GITHUB_EMAIL || 'gh_action_dart_conventional_release@users.noreply.github.com'}"`])
-  const remoteGitRepoUrl = `https://${githubToken}:x-oauth-basic@github.com/${process.env.GITHUB_REPOSITORY}.git`
-  await runInWorkspace('git', ['remote', 'set-url', 'origin', remoteGitRepoUrl])
-
-
-  // Committing changes
-  await runInWorkspace('git', ['add', 'pubspec.yaml'])
-  await runInWorkspace('git', ['commit', '-m', `ci: ${commitMessage} ${newVersion}`])
-  // Tagging the commit
-  const tag = `v${newVersion}`
-  await runInWorkspace('git', ['tag', tag])
-
-  // Pushing changes
-  await runInWorkspace('git', ['push', 'origin'])
-  await runInWorkspace('git', ['push', 'origin', '--tags'])
-  await uploadDartProject()
-} catch (error) {
-  core.setFailed(`Action failed with error: ${error}`)
 }
