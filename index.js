@@ -47,6 +47,12 @@ function runInWorkspace(command, args) {
   return exec.exec(command, args, { cwd: workspace })
 }
 
+async function analyzeDartProject() {
+  await runInWorkspace('dart', ['analyze'])
+  await runInWorkspace('dart', ['format', '--set-exit-if-changed', '.'])
+  await runInWorkspace('dart', ['pub', 'publish', '--dry-run'])
+}
+
 async function run() {
   try {
     const pubspec = getPubspec()
@@ -76,11 +82,8 @@ async function run() {
     core.info(`Bumping version from ${currentVersion} to ${newVersion}`)
     updatePubspec(newVersion)
 
-    // Some tests
-    await runInWorkspace('pwd')
-    await runInWorkspace('ls', ['-la'])
-    await runInWorkspace('git', ['config', '--global', '--add', 'safe.directory', workspace])
-    await runInWorkspace('git', ['status'])
+    // Verification before publishing
+    await analyzeDartProject();
 
     // Setting up Git
     await runInWorkspace('git', ['config', 'user.name', `"${process.env.GITHUB_USER || 'Dart Conventional Release'}"`])
