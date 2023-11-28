@@ -22,6 +22,9 @@ ENV PATH="/usr/local/flutter/bin/cache/dart-sdk/bin:${PATH}"
 COPY package*.json ./
 RUN npm install
 
+# Precache Flutter
+RUN flutter precache
+
 # Copy the rest of your action's code
 COPY . .
 
