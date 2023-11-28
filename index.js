@@ -153,6 +153,9 @@ async function analyzeDartProject() {
   await runInWorkspace('dart', ['pub', 'publish', '--dry-run'])
 }
 
+// Upload dart project to pub.dev
+//
+// This function uses a --force because we can't interact with the console during a GitHub Action
 async function uploadDartProject() {
-  await runInWorkspace('dart', ['pub', 'publish'])
+  await runInWorkspace('dart', ['pub', 'publish', '--force'])
 }
