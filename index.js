@@ -35,7 +35,7 @@ if (githubToken == null || githubToken == "") {
 async function run() {
   try {
     await configureGit()
-    await installDartDependencies();
+    await installDartDependencies()
     await executeScriptPreRun()
     await configurePubDevToken()
 
@@ -90,7 +90,7 @@ async function run() {
   }
 }
 
-run();
+run()
 
 // =====================================================================
 // =============================== Utils ===============================
