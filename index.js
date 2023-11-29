@@ -5,6 +5,19 @@ const fs = require('fs')
 const yaml = require('yaml')
 const semver = require('semver')
 
+const ref = github.context.ref;
+
+// Determine the ref type
+let refType;
+if (ref.startsWith('refs/heads/')) {
+  refType = 'branch';
+} else if (ref.startsWith('refs/tags/')) {
+  refType = 'tag';
+} else {
+  core.setFailed(`${ref} is not a branch or tag`);
+  return
+}
+
 // =====================================================================
 // ========================== GLOBAL CONFIG ============================
 // =====================================================================
@@ -155,7 +168,12 @@ async function analyzeDartProject() {
 
 // Upload dart project to pub.dev
 //
+// Publishing to pub.dev can only be done when the github action is triggered from a tag.
 // This function uses a --force because we can't interact with the console during a GitHub Action
 async function uploadDartProject() {
+  if (refType !== 'tag') {
+    core.setFailed('Only tags can be published to pub.dev')
+    return
+  }
   await runInWorkspace('dart', ['pub', 'publish', '--force'])
 }
