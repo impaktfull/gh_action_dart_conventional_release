@@ -5,19 +5,6 @@ const fs = require('fs')
 const yaml = require('yaml')
 const semver = require('semver')
 
-const ref = github.context.ref;
-
-// Determine the ref type
-let refType;
-if (ref.startsWith('refs/heads/')) {
-  refType = 'branch';
-} else if (ref.startsWith('refs/tags/')) {
-  refType = 'tag';
-} else {
-  core.setFailed(`${ref} is not a branch or tag`);
-  return
-}
-
 // =====================================================================
 // ========================== GLOBAL CONFIG ============================
 // =====================================================================
@@ -50,7 +37,6 @@ async function run() {
     await configureGit()
     await installDartDependencies()
     await executeScriptPreRun()
-    await configurePubDevToken()
 
     const pubspec = getPubspec()
     const event = github.context.payload
@@ -144,35 +130,12 @@ function incrementVersion(currentVersion, type) {
   return semver.inc(currentVersion, type)
 }
 
-function runInWorkspace(command, args) {
-  return exec.exec(command, args, { cwd: workspace })
-}
-
-async function configurePubDevToken() {
-  const tokenRequestUrl = process.env.ACTIONS_ID_TOKEN_REQUEST_URL
-  const tokenRequestToken = process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN
-
-  if (!tokenRequestUrl || !tokenRequestToken) {
-    throw "(permission: id-token: write) is requried to publish to pub.dev"
-  }
-  const token = await core.getIDToken('https://pub.dev')
-  core.exportVariable('PUB_TOKEN', token)
-  await runInWorkspace('dart', ['pub', 'token', 'add', 'https://pub.dev', '--env-var', 'PUB_TOKEN'])
-}
-
 async function analyzeDartProject() {
   await runInWorkspace('dart', ['analyze'])
   await runInWorkspace('dart', ['format', '--set-exit-if-changed', '.'])
   await runInWorkspace('dart', ['pub', 'publish', '--dry-run'])
 }
 
-// Upload dart project to pub.dev
-//
-// Publishing to pub.dev will only be done when the github action is triggered from a tag.
-// This function uses a --force because we can't interact with the console during a GitHub Action
-async function uploadDartProject() {
-  if (refType !== 'tag') {
-    return
-  }
-  await runInWorkspace('dart', ['pub', 'publish', '--force'])
+function runInWorkspace(command, args) {
+  return exec.exec(command, args, { cwd: workspace })
 }
