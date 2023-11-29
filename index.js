@@ -23,7 +23,7 @@ const workspace = process.env.GITHUB_WORKSPACE
 console.log(`Current workspace: ${workspace}`)
 
 // Github Token
-const githubToken = core.getInput('github-token')
+const githubToken = process.env.GITHUB_TOKEN
 if (githubToken == null || githubToken == "") {
   core.setFailed('GITHUB_TOKEN not found.')
   return
