@@ -83,7 +83,6 @@ async function run() {
     const remoteGitRepoUrl = `https://${githubToken}:x-oauth-basic@github.com/${process.env.GITHUB_REPOSITORY}.git`
     await runInWorkspace('git', ['push', remoteGitRepoUrl])
     await runInWorkspace('git', ['push', remoteGitRepoUrl, '--tags'])
-    await uploadDartProject()
   } catch (error) {
     core.setFailed(`Action failed with error: ${error}`)
   }
