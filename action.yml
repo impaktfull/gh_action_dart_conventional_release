@@ -7,6 +7,9 @@ branding:
   icon: upload-cloud
   color: blue
 inputs:
+  github-token:
+    description: 'Github token'
+    required: true
   tag-prefix:
     description: 'Prefix that is used for the git tag'
     default: 'v'
