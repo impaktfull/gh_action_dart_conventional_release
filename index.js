@@ -168,11 +168,10 @@ async function analyzeDartProject() {
 
 // Upload dart project to pub.dev
 //
-// Publishing to pub.dev can only be done when the github action is triggered from a tag.
+// Publishing to pub.dev will only be done when the github action is triggered from a tag.
 // This function uses a --force because we can't interact with the console during a GitHub Action
 async function uploadDartProject() {
   if (refType !== 'tag') {
-    core.setFailed('Only tags can be published to pub.dev')
     return
   }
   await runInWorkspace('dart', ['pub', 'publish', '--force'])
