@@ -18,12 +18,12 @@ if (process.env.PACKAGEJSON_DIR) {
   process.chdir(process.env.GITHUB_WORKSPACE)
 }
 
-//Workspace
+// Workspace
 const workspace = process.env.GITHUB_WORKSPACE
 console.log(`Current workspace: ${workspace}`)
 
 // Github Token
-const githubToken = process.env.GITHUB_TOKEN
+const githubToken = procore.getInput('github-token')
 if (githubToken == null || githubToken == "") {
   core.setFailed('GITHUB_TOKEN not found.')
   return
