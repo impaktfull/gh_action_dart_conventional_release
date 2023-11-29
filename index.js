@@ -23,7 +23,7 @@ const workspace = process.env.GITHUB_WORKSPACE
 console.log(`Current workspace: ${workspace}`)
 
 // Github Token
-const githubToken = procore.getInput('github-token')
+const githubToken = core.getInput('github-token')
 if (githubToken == null || githubToken == "") {
   core.setFailed('GITHUB_TOKEN not found.')
   return
