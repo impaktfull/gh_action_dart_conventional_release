@@ -23,11 +23,11 @@ const workspace = process.env.GITHUB_WORKSPACE
 console.log(`Current workspace: ${workspace}`)
 
 // Github Token
-const githubToken = process.env.GITHUB_TOKEN
-if (githubToken == null || githubToken == "") {
-  core.setFailed('GITHUB_TOKEN not found.')
-  return
-}
+// const githubToken = process.env.GITHUB_TOKEN
+// if (githubToken == null || githubToken == "") {
+//   core.setFailed('GITHUB_TOKEN not found.')
+//   return
+// }
 
 // =====================================================================
 // ================================ RUN ================================
@@ -80,9 +80,12 @@ async function run() {
     await runInWorkspace('git', ['tag', tag])
 
     // Pushing changes
-    const remoteGitRepoUrl = `https://${githubToken}:x-oauth-basic@github.com/${process.env.GITHUB_REPOSITORY}.git`
-    await runInWorkspace('git', ['push', remoteGitRepoUrl])
-    await runInWorkspace('git', ['push', remoteGitRepoUrl, '--tags'])
+    // const remoteGitRepoUrl = `https://${githubToken}:x-oauth-basic@github.com/${process.env.GITHUB_REPOSITORY}.git`
+    // await runInWorkspace('git', ['push', remoteGitRepoUrl])
+    await runInWorkspace('git', ['push'])
+    // await runInWorkspace('git', ['push', remoteGitRepoUrl, '--tags'])
+    await runInWorkspace('git', ['push', '--tags'])
+
   } catch (error) {
     core.setFailed(`Action failed with error: ${error}`)
   }
