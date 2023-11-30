@@ -87,10 +87,8 @@ async function run() {
 
     // Pushing changes
     const remoteGitRepoUrl = `https://${githubToken}@github.com/${process.env.GITHUB_REPOSITORY}.git`
-    await runInWorkspace('git', ['remote', 'remove', 'origin'])
-    await runInWorkspace('git', ['remote', 'add', 'origin', remoteGitRepoUrl])
-    await runInWorkspace('git', ['push', 'origin'])
-    await runInWorkspace('git', ['push', 'origin', '--tags'])
+    await runInWorkspace('git', ['push', remoteGitRepoUrl])
+    await runInWorkspace('git', ['push', remoteGitRepoUrl, '--tags'])
 
   } catch (error) {
     core.setFailed(`Action failed with error: ${error}`)
