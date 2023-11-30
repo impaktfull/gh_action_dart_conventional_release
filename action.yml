@@ -7,12 +7,12 @@ branding:
   icon: upload-cloud
   color: blue
 inputs:
-  github-token:
-    description: 'Github token'
-    required: true
-  github-username:
-    description: 'The Github username that is linked to the github token'
-    required: true
+  # github-token:
+  #   description: 'Github token'
+  #   required: true
+  # github-username:
+  #   description: 'The Github username that is linked to the github token'
+  #   required: true
   tag-prefix:
     description: 'Prefix that is used for the git tag'
     default: 'v'

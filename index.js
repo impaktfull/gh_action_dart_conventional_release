@@ -22,18 +22,18 @@ if (process.env.PACKAGEJSON_DIR) {
 const workspace = process.env.GITHUB_WORKSPACE
 console.log(`Current workspace: ${workspace}`)
 
-// Github Token
-const githubToken = core.getInput('github-token')
-if (githubToken == null || githubToken == "") {
-  core.setFailed('github-token not found as input.')
-  return
-}
-// Github Username
-const githubUsername = core.getInput('github-username')
-if (githubUsername == null || githubUsername == "") {
-  core.setFailed('github-username not found as input.')
-  return
-}
+// // Github Token
+// const githubToken = core.getInput('github-token')
+// if (githubToken == null || githubToken == "") {
+//   core.setFailed('github-token not found as input.')
+//   return
+// }
+// // Github Username
+// const githubUsername = core.getInput('github-username')
+// if (githubUsername == null || githubUsername == "") {
+//   core.setFailed('github-username not found as input.')
+//   return
+// }
 
 // =====================================================================
 // ================================ RUN ================================
@@ -86,9 +86,11 @@ async function run() {
     await runInWorkspace('git', ['tag', tag])
 
     // Pushing changes
-    const remoteGitRepoUrl = `https://${githubToken}:x-oauth-basic@github.com/${process.env.GITHUB_REPOSITORY}.git`
-    await runInWorkspace('git', ['push', remoteGitRepoUrl])
-    await runInWorkspace('git', ['push', remoteGitRepoUrl, '--tags'])
+    // const remoteGitRepoUrl = `https://${githubToken}:x-oauth-basic@github.com/${process.env.GITHUB_REPOSITORY}.git`
+    // await runInWorkspace('git', ['push', remoteGitRepoUrl])
+    // await runInWorkspace('git', ['push', remoteGitRepoUrl, '--tags'])
+    await runInWorkspace('git', ['push'])
+    await runInWorkspace('git', ['push', '--tags'])
 
   } catch (error) {
     core.setFailed(`Action failed with error: ${error}`)
