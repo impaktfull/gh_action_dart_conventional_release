@@ -86,7 +86,7 @@ async function run() {
     await runInWorkspace('git', ['tag', tag])
 
     // Pushing changes
-    const remoteGitRepoUrl = `https://${githubToken}@github.com/${process.env.GITHUB_REPOSITORY}.git`
+    const remoteGitRepoUrl = `https://oauth2:${githubToken}@github.com/${process.env.GITHUB_REPOSITORY}.git`
     await runInWorkspace('git', ['push', remoteGitRepoUrl])
     await runInWorkspace('git', ['push', remoteGitRepoUrl, '--tags'])
 
