@@ -28,7 +28,7 @@ console.log(`Current workspace: ${workspace}`)
 async function run() {
   try {
     await configureGit()
-    await installDartDependencies()
+    await installDependencies()
     await executeScriptPreRun()
 
     const pubspec = getPubspec()
@@ -59,7 +59,7 @@ async function run() {
     updatePubspec(newVersion)
 
     // Verification before publishing
-    await analyzeDartProject()
+    await analyzeProject()
 
     // Setting up Git
     await runInWorkspace('git', ['config', 'user.name', `"${process.env.GITHUB_USER || 'Dart Conventional Release'}"`])
@@ -69,7 +69,8 @@ async function run() {
     await runInWorkspace('git', ['add', 'pubspec.yaml'])
     await runInWorkspace('git', ['commit', '-m', `ci: ${commitMessage} ${newVersion}`])
     // Tagging the commit
-    const tag = `v${newVersion}`
+    const tagPrefix = core.getInput('tag-prefix')
+    const tag = `${tagPrefix}${newVersion}`
     await runInWorkspace('git', ['tag', tag])
 
     // Pushing changes
@@ -91,8 +92,13 @@ async function configureGit() {
   await runInWorkspace('git', ['config', '--global', '--add', 'safe.directory', workspace])
 }
 
-async function installDartDependencies() {
-  await runInWorkspace('dart', ['pub', 'get'])
+async function installDependencies() {
+  const useDart = core.getInput('use-dart')
+  if (useDart) {
+    await runInWorkspace('dart', ['pub', 'get'])
+  } else {
+    await runInWorkspace('flutter', ['packages', 'get'])
+  }
 }
 
 // Run a script before the action (only if configured)
@@ -122,7 +128,7 @@ function incrementVersion(currentVersion, type) {
   return semver.inc(currentVersion, type)
 }
 
-async function analyzeDartProject() {
+async function analyzeProject() {
   await runInWorkspace('dart', ['analyze'])
   await runInWorkspace('dart', ['format', '--set-exit-if-changed', '.'])
   await runInWorkspace('dart', ['pub', 'publish', '--dry-run'])

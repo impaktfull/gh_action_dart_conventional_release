@@ -1,5 +1,5 @@
-name: Dart Conventional Release
-description: Automating version bump for conventional dart releases
+name: Dart/Flutter Conventional Release
+description: Automating version bump for conventional dart/flutter releases
 runs:
   using: docker
   image: Dockerfile
@@ -10,6 +10,10 @@ inputs:
   tag-prefix:
     description: 'Prefix that is used for the git tag'
     default: 'v'
+    required: false
+  use-dart:
+    description: 'Prefix that is used for the git tag'
+    default: false
     required: false
   script-pre-run:
     description: 'Path to a dart script that is executed before the version bump'
