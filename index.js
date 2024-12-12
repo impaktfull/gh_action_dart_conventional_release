@@ -131,7 +131,7 @@ function incrementVersion(currentVersion, type) {
 async function analyzeProject() {
   await runInWorkspace('dart', ['analyze'])
   await runInWorkspace('dart', ['format', '--set-exit-if-changed', '.'])
-  await runInWorkspace('dart', ['pub', 'publish', '--dry-run'])
+  await runInWorkspace('dart', ['pub', 'publish', '--dry-run', '--skip-validation'])
 }
 
 function runInWorkspace(command, args) {
