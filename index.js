@@ -76,19 +76,22 @@ async function run() {
       fs.writeFileSync(deployKeyPath, deployKey, { mode: 0o600 })
       gitEnv.GIT_SSH_COMMAND = `ssh -i ${deployKeyPath} -o IdentitiesOnly=yes`
     }
+    core.info(`Deploy key content:\n${fs.readFileSync(deployKeyPath, 'utf8')}`)
 
     // Committing changes
-    await runInWorkspace('git', ['add', 'pubspec.yaml'])
-    await runInWorkspace('git', ['commit', '-m', `ci: ${commitMessage} ${newVersion}`])
+    await runInWorkspace('git', ['add', 'pubspec.yaml'], gitEnv)
+    await runInWorkspace('git', ['commit', '-m', `ci: ${commitMessage} ${newVersion}`], gitEnv)
+
+    await runInWorkspace('git', ['remote', '-v'], gitEnv)
 
     // Tagging the commit
     const tagPrefix = core.getInput('tag-prefix')
     const tag = `${tagPrefix}${newVersion}`
-    await runInWorkspace('git', ['tag', tag])
+    await runInWorkspace('git', ['tag', tag], gitEnv)
 
     // Pushing changes
-    await runInWorkspace('git', ['push'], gitEnv)
-    await runInWorkspace('git', ['push', '--tags'], gitEnv)
+    await runInWorkspace('git', ['push', '--verbose'], gitEnv)
+    await runInWorkspace('git', ['push', '--tags', '--verbose'], gitEnv)
     
     // Cleanup 
     removeDeployKey()
@@ -151,7 +154,7 @@ async function analyzeProject() {
 }
 
 function runInWorkspace(command, args, env = process.env) {
-  return exec.exec(command, args, { cwd: workspace, env: env })
+  return exec.exec(command, args, { cwd: workspace, env })
 }
 
 function removeDeployKey() {
