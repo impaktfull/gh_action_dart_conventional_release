@@ -87,13 +87,6 @@ async function run() {
         'origin',
         `git@github.com:${github.context.repo.owner}/${github.context.repo.repo}.git`
       ])
-      await runInWorkspace('ssh', [
-        '-o', 'IdentitiesOnly=yes',
-        '-o', 'StrictHostKeyChecking=no',
-        '-i',
-        deployKeyPath,
-        'git@github.com',
-      ])
     }
 
     // Committing changes
