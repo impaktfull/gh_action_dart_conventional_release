@@ -8,13 +8,16 @@ branding:
   color: blue
 inputs:
   tag-prefix:
-    description: 'Prefix that is used for the git tag'
-    default: 'v'
+    description: "Prefix that is used for the git tag"
+    default: "v"
     required: false
   use-dart:
-    description: 'Prefix that is used for the git tag'
+    description: "Prefix that is used for the git tag"
     default: false
     required: false
   script-pre-run:
-    description: 'Path to a dart script that is executed before the version bump'
+    description: "Path to a dart script that is executed before the version bump"
+    required: false
+  deploy-key:
+    description: "Deploy key to use for the git push"
     required: false
