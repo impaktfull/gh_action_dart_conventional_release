@@ -25,7 +25,6 @@ console.log(`Current workspace: ${workspace}`)
 
 // Git Env variables
 const deployKeyPath = path.join(workspace, '.deploy_key')
-const sshKnownHostsPath = path.join(workspace, '.ssh', 'known_hosts')
 
 // =====================================================================
 // ================================ RUN ================================
@@ -74,8 +73,7 @@ async function run() {
     const deployKey = core.getInput('deploy-key')
     if (deployKey) {
       fs.writeFileSync(deployKeyPath, deployKey, { mode: 0o600 })
-      await runInWorkspace('ssh-keyscan', ['github.com', '>>', sshKnownHostsPath])
-      await runInWorkspace('git', ['config', '--local', 'core.sshCommand', `ssh -i ${deployKeyPath} -o IdentitiesOnly=yes -o UserKnownHostsFile=${sshKnownHostsPath} `])
+      await runInWorkspace('git', ['config', '--local', 'core.sshCommand', `ssh -i ${deployKeyPath} -o IdentitiesOnly=yes -o StrictHostKeyChecking=no`])
       await runInWorkspace('git', [
         'remote',
         'set-url',
