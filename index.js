@@ -24,7 +24,6 @@ const workspace = process.env.GITHUB_WORKSPACE
 console.log(`Current workspace: ${workspace}`)
 
 // Git Env variables
-const gitEnv = { ...process.env }
 const deployKeyPath = path.join(workspace, '.deploy_key')
 
 // =====================================================================
@@ -74,7 +73,7 @@ async function run() {
     const deployKey = core.getInput('deploy-key')
     if (deployKey) {
       fs.writeFileSync(deployKeyPath, deployKey, { mode: 0o600 })
-      gitEnv.GIT_SSH_COMMAND = `ssh -i ${deployKeyPath} -o IdentitiesOnly=yes`
+      await runInWorkspace('git', ['config', '--local', 'core.sshCommand', `ssh -i ${deployKeyPath} -o IdentitiesOnly=yes`])
       await runInWorkspace('git', [
         'remote',
         'set-url',
@@ -84,17 +83,17 @@ async function run() {
     }
 
     // Committing changes
-    await runInWorkspace('git', ['add', 'pubspec.yaml'], gitEnv)
-    await runInWorkspace('git', ['commit', '-m', `ci: ${commitMessage} ${newVersion}`], gitEnv)
+    await runInWorkspace('git', ['add', 'pubspec.yaml'])
+    await runInWorkspace('git', ['commit', '-m', `ci: ${commitMessage} ${newVersion}`])
 
     // Tagging the commit
     const tagPrefix = core.getInput('tag-prefix')
     const tag = `${tagPrefix}${newVersion}`
-    await runInWorkspace('git', ['tag', tag], gitEnv)
+    await runInWorkspace('git', ['tag', tag])
 
     // Pushing changes
-    await runInWorkspace('git', ['push', '--verbose'], gitEnv)
-    await runInWorkspace('git', ['push', '--tags', '--verbose'], gitEnv)
+    await runInWorkspace('git', ['push'])
+    await runInWorkspace('git', ['push', '--tags'])
     
     // Cleanup 
     removeDeployKey()
@@ -156,8 +155,8 @@ async function analyzeProject() {
   await runInWorkspace('dart', ['pub', 'publish', '--dry-run', '--skip-validation'])
 }
 
-function runInWorkspace(command, args, env = process.env) {
-  return exec.exec(command, args, { cwd: workspace, env })
+function runInWorkspace(command, args) {
+  return exec.exec(command, args, { cwd: workspace })
 }
 
 function removeDeployKey() {
