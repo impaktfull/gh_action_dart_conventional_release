@@ -24,7 +24,7 @@ const workspace = process.env.GITHUB_WORKSPACE
 console.log(`Current workspace: ${workspace}`)
 
 // Git Env variables
-const deployKeyPath = path.join(workspace, '.deploy_key')
+const deployKeyPath = path.join(workspace, '.ssh', 'id_deploy_key')
 
 // =====================================================================
 // ================================ RUN ================================
@@ -72,7 +72,13 @@ async function run() {
     // Setting up Deploy Key (if provided)
     const deployKey = core.getInput('deploy-key')
     if (deployKey) {
+      // Create all required directories for deploy key
+      fs.mkdirSync(path.dirname(deployKeyPath), { recursive: true })
+
+      // Write deploy key to id_deploy_key
       fs.writeFileSync(deployKeyPath, deployKey, { mode: 0o600 })
+      
+      // Add GitHub to known hosts
       await runInWorkspace('git', ['config', '--local', 'core.sshCommand', `ssh -i ${deployKeyPath} -o IdentitiesOnly=yes -o StrictHostKeyChecking=no`])
       await runInWorkspace('git', [
         'remote',
