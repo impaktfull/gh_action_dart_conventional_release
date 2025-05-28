@@ -120,10 +120,12 @@ async function addGithubToKnownHosts() {
     fs.mkdirSync(sshDir, { recursive: true })
   }
 
-  const { stdout, stderr, exitCode } = await getExecOutput('ssh-keyscan github.com', [], { silent: true })
+  
+  const { stdout, stderr, exitCode } = await getExecOutput('ssh-keyscan', ['github.com'], { silent: true })
   if (exitCode !== 0) {
     throw new Error(`ssh-keyscan failed: ${stderr}`)
   }
+  core.info(`ssh-keyscan output: ${stdout}`)
 
   const knownHostsPath = path.join(sshDir, 'known_hosts')
   fs.appendFileSync(knownHostsPath, stdout)
