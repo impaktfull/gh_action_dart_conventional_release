@@ -25,6 +25,7 @@ console.log(`Current workspace: ${workspace}`)
 
 // Git Env variables
 const deployKeyPath = path.join(workspace, '.deploy_key')
+const sshKnownHostsPath = path.join(workspace, '.ssh', 'known_hosts')
 
 // =====================================================================
 // ================================ RUN ================================
@@ -73,14 +74,14 @@ async function run() {
     const deployKey = core.getInput('deploy-key')
     if (deployKey) {
       fs.writeFileSync(deployKeyPath, deployKey, { mode: 0o600 })
-      await runInWorkspace('git', ['config', '--local', 'core.sshCommand', `ssh -i ${deployKeyPath} -o IdentitiesOnly=yes`])
+      await runInWorkspace('ssh-keyscan', ['github.com', '>>', sshKnownHostsPath])
+      await runInWorkspace('git', ['config', '--local', 'core.sshCommand', `ssh -i ${deployKeyPath} -o IdentitiesOnly=yes -o UserKnownHostsFile=${sshKnownHostsPath} `])
       await runInWorkspace('git', [
         'remote',
         'set-url',
         'origin',
         `git@github.com:${github.context.repo.owner}/${github.context.repo.repo}.git`
       ])
-      await addGithubToKnownHosts()
     }
 
     // Committing changes
@@ -112,23 +113,6 @@ run()
 
 async function configureGit() {
   await runInWorkspace('git', ['config', '--global', '--add', 'safe.directory', workspace])
-}
-
-async function addGithubToKnownHosts() {
-  const sshDir = path.join(process.env.HOME, '.ssh')
-  if (!fs.existsSync(sshDir)) {
-    fs.mkdirSync(sshDir, { recursive: true })
-  }
-
-  
-  const { stdout, stderr, exitCode } = await getExecOutput('ssh-keyscan', ['github.com'], { silent: true })
-  if (exitCode !== 0) {
-    throw new Error(`ssh-keyscan failed: ${stderr}`)
-  }
-  core.info(`ssh-keyscan output: ${stdout}`)
-
-  const knownHostsPath = path.join(sshDir, 'known_hosts')
-  fs.appendFileSync(knownHostsPath, stdout)
 }
 
 async function installDependencies() {
