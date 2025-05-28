@@ -23,7 +23,8 @@ if (process.env.PACKAGEJSON_DIR) {
 const workspace = process.env.GITHUB_WORKSPACE
 console.log(`Current workspace: ${workspace}`)
 
-// Deploy key path
+// Git Env variables
+const gitEnv = { ...process.env }
 const deployKeyPath = path.join(workspace, '.deploy_key')
 
 // =====================================================================
@@ -73,20 +74,21 @@ async function run() {
     const deployKey = core.getInput('deploy-key')
     if (deployKey) {
       fs.writeFileSync(deployKeyPath, deployKey, { mode: 0o600 })
-      await runInWorkspace('git', ['config', '--local', 'core.sshCommand', `ssh -i ${deployKeyPath} -o IdentitiesOnly=yes`])
+      gitEnv.GIT_SSH_COMMAND = `ssh -i ${deployKeyPath} -o IdentitiesOnly=yes`
     }
 
     // Committing changes
     await runInWorkspace('git', ['add', 'pubspec.yaml'])
     await runInWorkspace('git', ['commit', '-m', `ci: ${commitMessage} ${newVersion}`])
+
     // Tagging the commit
     const tagPrefix = core.getInput('tag-prefix')
     const tag = `${tagPrefix}${newVersion}`
     await runInWorkspace('git', ['tag', tag])
 
     // Pushing changes
-    await runInWorkspace('git', ['push'])
-    await runInWorkspace('git', ['push', '--tags'])
+    await runInWorkspace('git', ['push'], gitEnv)
+    await runInWorkspace('git', ['push', '--tags'], gitEnv)
     
     // Cleanup 
     removeDeployKey()
@@ -148,8 +150,8 @@ async function analyzeProject() {
   await runInWorkspace('dart', ['pub', 'publish', '--dry-run', '--skip-validation'])
 }
 
-function runInWorkspace(command, args) {
-  return exec.exec(command, args, { cwd: workspace })
+function runInWorkspace(command, args, env = process.env) {
+  return exec.exec(command, args, { cwd: workspace, env: env })
 }
 
 function removeDeployKey() {
