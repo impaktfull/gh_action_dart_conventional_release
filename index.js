@@ -70,13 +70,14 @@ async function run() {
     await runInWorkspace('git', ['config', 'user.email', `"${process.env.GITHUB_EMAIL || 'gh_action_dart_conventional_release@users.noreply.github.com'}"`])
 
     // Setting up Deploy Key (if provided)
-    const deployKey = core.getInput('deploy-key')
-    if (deployKey) {
+    const deployKeyB64 = core.getInput('deploy-key')
+    if (deployKeyB64) {
       // Create all required directories for deploy key
       fs.mkdirSync(path.dirname(deployKeyPath), { recursive: true })
 
+      const decodedKey = Buffer.from(deployKeyB64, 'base64').toString('utf8')
       // Write deploy key to id_deploy_key
-      fs.writeFileSync(deployKeyPath, deployKey, { mode: 0o600 })
+      fs.writeFileSync(deployKeyPath, decodedKey, { mode: 0o600 })
       
       // Add GitHub to known hosts
       await runInWorkspace('git', ['config', '--local', 'core.sshCommand', `ssh -i ${deployKeyPath} -o IdentitiesOnly=yes -o StrictHostKeyChecking=no`])
