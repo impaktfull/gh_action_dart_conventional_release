@@ -73,7 +73,7 @@ async function run() {
     const deployKey = core.getInput('deploy-key')
     if (deployKey) {
       fs.writeFileSync(deployKeyPath, deployKey, { mode: 0o600 })
-      await runInWorkspace('git', ['config', 'core.sshCommand', `ssh -i ${deployKeyPath}`])
+      await runInWorkspace('git', ['config', '--local', 'core.sshCommand', `ssh -i ${deployKeyPath} -o IdentitiesOnly=yes`])
     }
 
     // Committing changes
