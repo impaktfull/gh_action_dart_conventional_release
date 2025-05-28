@@ -75,14 +75,17 @@ async function run() {
     if (deployKey) {
       fs.writeFileSync(deployKeyPath, deployKey, { mode: 0o600 })
       gitEnv.GIT_SSH_COMMAND = `ssh -i ${deployKeyPath} -o IdentitiesOnly=yes`
+      await runInWorkspace('git', [
+        'remote',
+        'set-url',
+        'origin',
+        `git@github.com:${github.context.repo.owner}/${github.context.repo.repo}.git`
+      ])
     }
-    core.info(`Deploy key content:\n${fs.readFileSync(deployKeyPath, 'utf8')}`)
 
     // Committing changes
     await runInWorkspace('git', ['add', 'pubspec.yaml'], gitEnv)
     await runInWorkspace('git', ['commit', '-m', `ci: ${commitMessage} ${newVersion}`], gitEnv)
-
-    await runInWorkspace('git', ['remote', '-v'], gitEnv)
 
     // Tagging the commit
     const tagPrefix = core.getInput('tag-prefix')
