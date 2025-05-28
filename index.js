@@ -81,6 +81,8 @@ async function run() {
         `git@github.com:${github.context.repo.owner}/${github.context.repo.repo}.git`
       ])
       await runInWorkspace('ssh', [
+        '-o',
+        'StrictHostKeyChecking=no',
         '-i',
         deployKeyPath,
         'git@github.com',
