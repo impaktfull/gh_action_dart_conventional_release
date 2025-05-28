@@ -64,11 +64,13 @@ async function run() {
 
     // Verification before publishing
     await analyzeProject()
-    await dryRunPublish()
 
     // Committing changes
     await runInWorkspace('git', ['add', 'pubspec.yaml'])
     await runInWorkspace('git', ['commit', '-m', `ci: ${commitMessage} ${newVersion}`])
+
+    // Try running the publish command to see if it works
+    await dryRunPublish()
 
     // Tagging the commit
     const tagPrefix = core.getInput('tag-prefix')
