@@ -1,6 +1,6 @@
 const core = require('@actions/core')
 const github = require('@actions/github')
-const exec = require('@actions/exec')
+const { exec, getExecOutput } = require('@actions/exec')
 const fs = require('fs')
 const path = require('path')
 const yaml = require('yaml')
