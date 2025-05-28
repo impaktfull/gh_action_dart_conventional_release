@@ -22,6 +22,9 @@ if (process.env.PACKAGEJSON_DIR) {
 const workspace = process.env.GITHUB_WORKSPACE
 console.log(`Current workspace: ${workspace}`)
 
+// Deploy key path
+const deployKeyPath = path.join(workspace, '.deploy_key')
+
 // =====================================================================
 // ================================ RUN ================================
 // =====================================================================
@@ -65,6 +68,13 @@ async function run() {
     await runInWorkspace('git', ['config', 'user.name', `"${process.env.GITHUB_USER || 'Dart Conventional Release'}"`])
     await runInWorkspace('git', ['config', 'user.email', `"${process.env.GITHUB_EMAIL || 'gh_action_dart_conventional_release@users.noreply.github.com'}"`])
 
+    // Setting up Deploy Key (if provided)
+    const deployKey = core.getInput('deploy-key')
+    if (deployKey) {
+      fs.writeFileSync(deployKeyPath, deployKey, { mode: 0o600 })
+      await runInWorkspace('git', ['config', 'core.sshCommand', `ssh -i ${deployKeyPath}`])
+    }
+
     // Committing changes
     await runInWorkspace('git', ['add', 'pubspec.yaml'])
     await runInWorkspace('git', ['commit', '-m', `ci: ${commitMessage} ${newVersion}`])
@@ -76,8 +86,11 @@ async function run() {
     // Pushing changes
     await runInWorkspace('git', ['push'])
     await runInWorkspace('git', ['push', '--tags'])
-
+    
+    // Cleanup 
+    removeDeployKey()
   } catch (error) {
+    removeDeployKey()
     core.setFailed(`Action failed with error: ${error}`)
   }
 }
@@ -136,4 +149,9 @@ async function analyzeProject() {
 
 function runInWorkspace(command, args) {
   return exec.exec(command, args, { cwd: workspace })
+}
+
+function removeDeployKey() {
+  if (!fs.existsSync(deployKeyPath)) return
+  fs.rmSync(deployKeyPath)
 }
