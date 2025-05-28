@@ -172,7 +172,7 @@ async function analyzeProject() {
 }
 
 function runInWorkspace(command, args) {
-  return exec.exec(command, args, { cwd: workspace })
+  return exec(command, args, { cwd: workspace })
 }
 
 function removeDeployKey() {
