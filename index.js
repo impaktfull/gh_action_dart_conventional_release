@@ -1,6 +1,6 @@
 const core = require('@actions/core')
 const github = require('@actions/github')
-const { exec, getExecOutput } = require('@actions/exec')
+const exec = require('@actions/exec')
 const fs = require('fs')
 const path = require('path')
 const yaml = require('yaml')
@@ -156,7 +156,7 @@ async function analyzeProject() {
 }
 
 function runInWorkspace(command, args) {
-  return exec(command, args, { cwd: workspace })
+  return exec.exec(command, args, { cwd: workspace })
 }
 
 function removeDeployKey() {
