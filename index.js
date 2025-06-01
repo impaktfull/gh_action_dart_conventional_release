@@ -23,8 +23,8 @@ if (process.env.PACKAGEJSON_DIR) {
 const workspace = process.env.GITHUB_WORKSPACE
 console.log(`Current workspace: ${workspace}`)
 
-// Git Env variables
-const deployKeyPath = path.join(workspace, '.deploy_key')
+// Custom deploy key
+const deployKeyPath = path.join(workspace, '.ssh', 'id_deploy_key')
 
 // =====================================================================
 // ================================ RUN ================================
@@ -65,33 +65,12 @@ async function run() {
     // Verification before publishing
     await analyzeProject()
 
-    // Setting up Git
-    await runInWorkspace('git', ['config', 'user.name', `"${process.env.GITHUB_USER || 'Dart Conventional Release'}"`])
-    await runInWorkspace('git', ['config', 'user.email', `"${process.env.GITHUB_EMAIL || 'gh_action_dart_conventional_release@users.noreply.github.com'}"`])
-
-    // Setting up Deploy Key (if provided)
-    const deployKey = core.getInput('deploy-key')
-    if (deployKey) {
-      fs.writeFileSync(deployKeyPath, deployKey, { mode: 0o600 })
-      await runInWorkspace('git', ['config', '--local', 'core.sshCommand', `ssh -i ${deployKeyPath} -o IdentitiesOnly=yes -o StrictHostKeyChecking=no`])
-      await runInWorkspace('git', [
-        'remote',
-        'set-url',
-        'origin',
-        `git@github.com:${github.context.repo.owner}/${github.context.repo.repo}.git`
-      ])
-      await runInWorkspace('ssh', [
-        '-o',
-        'StrictHostKeyChecking=no',
-        '-i',
-        deployKeyPath,
-        'git@github.com',
-      ])
-    }
-
     // Committing changes
     await runInWorkspace('git', ['add', 'pubspec.yaml'])
     await runInWorkspace('git', ['commit', '-m', `ci: ${commitMessage} ${newVersion}`])
+
+    // Try running the publish command to see if it works
+    await dryRunPublish()
 
     // Tagging the commit
     const tagPrefix = core.getInput('tag-prefix')
@@ -116,10 +95,34 @@ run()
 // =============================== Utils ===============================
 // =====================================================================
 
+// Configure Git
 async function configureGit() {
   await runInWorkspace('git', ['config', '--global', '--add', 'safe.directory', workspace])
+  await runInWorkspace('git', ['config', 'user.name', `"${process.env.GITHUB_USER || 'Dart Conventional Release'}"`])
+  await runInWorkspace('git', ['config', 'user.email', `"${process.env.GITHUB_EMAIL || 'gh_action_dart_conventional_release@users.noreply.github.com'}"`])
+
+  // Setting up Deploy Key (if provided)
+  const deployKeyB64 = core.getInput('deploy-key')
+  if (deployKeyB64) {
+    // Create all required directories for deploy key
+    fs.mkdirSync(path.dirname(deployKeyPath), { recursive: true })
+
+    const decodedKey = Buffer.from(deployKeyB64, 'base64').toString('utf8')
+    // Write deploy key to id_deploy_key
+    fs.writeFileSync(deployKeyPath, decodedKey, { mode: 0o600 })
+    
+    // Add GitHub to known hosts
+    await runInWorkspace('git', ['config', '--local', 'core.sshCommand', `ssh -i ${deployKeyPath} -o IdentitiesOnly=yes -o StrictHostKeyChecking=no`])
+    await runInWorkspace('git', [
+      'remote',
+      'set-url',
+      'origin',
+      `git@github.com:${github.context.repo.owner}/${github.context.repo.repo}.git`
+    ])
+  }
 }
 
+// Install dependencies
 async function installDependencies() {
   const useDart = core.getInput('use-dart')
   if (useDart) {
@@ -136,6 +139,23 @@ async function executeScriptPreRun() {
     return
   }
   await runInWorkspace('dart', ['run', path])
+}
+
+// Analyze the project to check for errors
+async function analyzeProject() {
+  await runInWorkspace('dart', ['analyze'])
+  await runInWorkspace('dart', ['format', '--set-exit-if-changed', '.'])
+  await runInWorkspace('dart', ['pub', 'publish', '--dry-run', '--skip-validation'])
+}
+
+// Try running the publish command to see if it works
+async function dryRunPublish() {
+  const useDart = core.getInput('use-dart')
+  if (useDart) {
+    await runInWorkspace('dart', ['pub', 'publish', '--dry-run'])
+  } else {
+    await runInWorkspace('flutter', ['pub', 'publish', '--dry-run'])
+  }
 }
 
 // Helper function to read and parse the pubspec.yaml file
@@ -156,17 +176,12 @@ function incrementVersion(currentVersion, type) {
   return semver.inc(currentVersion, type)
 }
 
-async function analyzeProject() {
-  await runInWorkspace('dart', ['analyze'])
-  await runInWorkspace('dart', ['format', '--set-exit-if-changed', '.'])
-  await runInWorkspace('dart', ['pub', 'publish', '--dry-run', '--skip-validation'])
+// Cleanup the deploy key saved in the workspace
+function removeDeployKey() {
+  if (!fs.existsSync(deployKeyPath)) return
+  fs.rmSync(deployKeyPath)
 }
 
 function runInWorkspace(command, args) {
   return exec.exec(command, args, { cwd: workspace })
-}
-
-function removeDeployKey() {
-  if (!fs.existsSync(deployKeyPath)) return
-  fs.rmSync(deployKeyPath)
 }

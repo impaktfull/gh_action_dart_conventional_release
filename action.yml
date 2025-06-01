@@ -19,5 +19,5 @@ inputs:
     description: "Path to a dart script that is executed before the version bump"
     required: false
   deploy-key:
-    description: "Deploy key to use for the git push"
+    description: "Deploy key to use for the git push (should be base64 encoded)"
     required: false
